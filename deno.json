@@ -1,0 +1,12 @@
+{
+  "name": "@lcweden/tree-stack",
+  "version": "0.0.0",
+  "license": "MIT",
+  "tasks": {
+    "build": "deno bundle --declaration --outdir dist mod.ts"
+  },
+  "exports": "./mod.ts",
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1"
+  }
+}
