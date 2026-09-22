@@ -66,7 +66,7 @@ class TreeStack {
    * @param last Whether this node is the last item among its siblings.
    * @returns The {@link TreeStack} instance for chaining.
    */
-  enter(last: boolean): this {
+  enter(last: boolean = false): this {
     return (this.#stack.push(last), this);
   }
 
