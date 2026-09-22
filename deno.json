@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "tasks": {
-    "build": "deno bundle --declaration --outdir dist mod.ts"
+    "build": "deno bundle --declaration --outdir dist mod.ts",
+    "dev": "deno test --watch"
   },
   "exports": "./mod.ts",
   "imports": {
