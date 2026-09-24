@@ -89,11 +89,10 @@ class TreeStack {
   /**
    * Pushes a new node or nesting level onto the stack.
    *
-   * @param last Whether this node is the last item among its siblings.
    * @returns The {@link TreeStack} instance for chaining.
    */
-  enter(last: boolean = false): this {
-    return (this.#stack.push(last), this);
+  enter(): this {
+    return (this.#stack.push(false), this);
   }
 
   /**

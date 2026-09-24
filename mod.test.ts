@@ -10,7 +10,7 @@ Deno.test("basic functionality", async (test) => {
     assertEquals(stack.lead, "");
   });
 
-  await test.step("enter default argument", () => {
+  await test.step("enter initializes intermediate node", () => {
     const stack = new TreeStack();
 
     stack.enter();
@@ -28,13 +28,13 @@ Deno.test("basic functionality", async (test) => {
       blank: "4",
     });
 
-    stack.enter(false);
+    stack.enter();
 
     assertEquals(stack.node, "1");
     assertEquals(stack.lead, "3");
 
     stack.leave();
-    stack.enter(true);
+    stack.enter().next({ last: true });
 
     assertEquals(stack.node, "2");
     assertEquals(stack.lead, "4");
@@ -45,13 +45,13 @@ Deno.test("basic functionality", async (test) => {
       tee: "+-- ",
     });
 
-    stack.enter(false);
+    stack.enter();
 
     assertEquals(stack.node, "+-- ");
     assertEquals(stack.lead, "│   ");
 
     stack.leave();
-    stack.enter(true);
+    stack.enter().next({ last: true });
 
     assertEquals(stack.node, "└── ");
     assertEquals(stack.lead, "    ");
@@ -60,7 +60,7 @@ Deno.test("basic functionality", async (test) => {
   await test.step("empty options object uses defaults", () => {
     const stack = new TreeStack({});
 
-    stack.enter(false);
+    stack.enter();
 
     assertEquals(stack.node, "├── ");
     assertEquals(stack.lead, "│   ");
@@ -71,7 +71,7 @@ Deno.test("single-level operations", async (test) => {
   await test.step("intermediate node", () => {
     const stack = new TreeStack();
 
-    stack.enter(false);
+    stack.enter();
 
     assertEquals(stack.depth, 1);
     assertEquals(stack.node, "├── ");
@@ -81,7 +81,7 @@ Deno.test("single-level operations", async (test) => {
   await test.step("last node", () => {
     const stack = new TreeStack();
 
-    stack.enter(true);
+    stack.enter().next({ last: true });
 
     assertEquals(stack.depth, 1);
     assertEquals(stack.node, "└── ");
@@ -114,7 +114,7 @@ Deno.test("single-level operations", async (test) => {
   await test.step("leave restores parent state", () => {
     const stack = new TreeStack();
 
-    stack.enter(false);
+    stack.enter();
 
     assertEquals(stack.depth, 1);
 
@@ -130,7 +130,7 @@ Deno.test("multi-level hierarchy", async (test) => {
   await test.step("parent false -> child false", () => {
     const stack = new TreeStack();
 
-    stack.enter(false).enter(false);
+    stack.enter().enter();
 
     assertEquals(stack.depth, 2);
     assertEquals(stack.node, "│   ├── ");
@@ -140,7 +140,7 @@ Deno.test("multi-level hierarchy", async (test) => {
   await test.step("parent false -> child true", () => {
     const stack = new TreeStack();
 
-    stack.enter(false).enter(true);
+    stack.enter().enter().next({ last: true });
 
     assertEquals(stack.depth, 2);
     assertEquals(stack.node, "│   └── ");
@@ -150,7 +150,7 @@ Deno.test("multi-level hierarchy", async (test) => {
   await test.step("parent true -> child false", () => {
     const stack = new TreeStack();
 
-    stack.enter(true).enter(false);
+    stack.enter().next({ last: true }).enter();
 
     assertEquals(stack.depth, 2);
     assertEquals(stack.node, "    ├── ");
@@ -160,7 +160,7 @@ Deno.test("multi-level hierarchy", async (test) => {
   await test.step("parent true -> child true", () => {
     const stack = new TreeStack();
 
-    stack.enter(true).enter(true);
+    stack.enter().next({ last: true }).enter().next({ last: true });
 
     assertEquals(stack.depth, 2);
     assertEquals(stack.node, "    └── ");
@@ -170,7 +170,7 @@ Deno.test("multi-level hierarchy", async (test) => {
   await test.step("deep nesting", () => {
     const stack = new TreeStack();
 
-    stack.enter(false).enter(true).enter(false);
+    stack.enter().enter().next({ last: true }).enter();
 
     assertEquals(stack.depth, 3);
     assertEquals(stack.node, "│       ├── ");
@@ -207,7 +207,7 @@ Deno.test("edge cases & chaining", async (test) => {
   await test.step("methods return instance for chaining", () => {
     const stack = new TreeStack();
 
-    assertStrictEquals(stack.enter(false), stack);
+    assertStrictEquals(stack.enter(), stack);
     assertStrictEquals(stack.next({ last: true }), stack);
     assertStrictEquals(stack.leave(), stack);
   });
@@ -215,11 +215,11 @@ Deno.test("edge cases & chaining", async (test) => {
   await test.step("state consistency after complete unwinding", () => {
     const stack = new TreeStack();
 
-    stack.enter(false).enter(true).leave().leave();
+    stack.enter().enter().next({ last: true }).leave().leave();
 
     assertEquals(stack.depth, 0);
 
-    stack.enter(true);
+    stack.enter().next({ last: true });
 
     assertEquals(stack.depth, 1);
     assertEquals(stack.node, "└── ");
@@ -231,7 +231,7 @@ Deno.test("multi-line content formatting", async (test) => {
   await test.step("aligns continuation lines using lead", () => {
     const stack = new TreeStack();
 
-    stack.enter(false);
+    stack.enter();
 
     const lines = [
       `${stack.node}task: build`,
@@ -255,16 +255,16 @@ Deno.test("tree rendering workflow", async (test) => {
     const stack = new TreeStack();
     const output: string[] = ["root"];
 
-    stack.enter(false);
+    stack.enter();
     output.push(`${stack.node}src`);
 
-    stack.enter(true);
+    stack.enter().next({ last: true });
     output.push(`${stack.node}index.ts`);
     stack.leave();
 
     stack.leave();
 
-    stack.enter(true);
+    stack.enter().next({ last: true });
     output.push(`${stack.node}README.md`);
     stack.leave();
 
