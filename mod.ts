@@ -22,10 +22,10 @@ type TreeStackOptions = {
  */
 class TreeStack {
   #stack: boolean[];
-  #tee: string;
-  #corner: string;
-  #vertical: string;
   #blank: string;
+  #corner: string;
+  #tee: string;
+  #vertical: string;
 
   /**
    * Creates a new `TreeStack` instance.
@@ -39,10 +39,10 @@ class TreeStack {
    */
   constructor(options: TreeStackOptions = {}) {
     this.#stack = [];
-    this.#tee = options.tee ?? "├── ";
-    this.#corner = options.corner ?? "└── ";
-    this.#vertical = options.vertical ?? "│   ";
     this.#blank = options.blank ?? "    ";
+    this.#corner = options.corner ?? "└── ";
+    this.#tee = options.tee ?? "├── ";
+    this.#vertical = options.vertical ?? "│   ";
   }
 
   /** Current nesting depth. */
@@ -52,12 +52,38 @@ class TreeStack {
 
   /** Continuation guide line for multi-line content or child metadata. */
   get lead(): string {
-    return this.prefix(true);
+    if (this.#stack.length === 0) {
+      return "";
+    }
+
+    let indent = "";
+
+    for (let i = 0; i < this.#stack.length - 1; i++) {
+      indent += this.#stack[i] ? this.#blank : this.#vertical;
+    }
+
+    const last = this.#stack[this.#stack.length - 1];
+    const prefix = `${indent}${last ? this.#blank : this.#vertical}`;
+
+    return prefix;
   }
 
   /** Branch prefix for the current node. */
   get node(): string {
-    return this.prefix(false);
+    if (this.#stack.length === 0) {
+      return "";
+    }
+
+    let indent = "";
+
+    for (let i = 0; i < this.#stack.length - 1; i++) {
+      indent += this.#stack[i] ? this.#blank : this.#vertical;
+    }
+
+    const last = this.#stack[this.#stack.length - 1];
+    const prefix = `${indent}${last ? this.#corner : this.#tee}`;
+
+    return prefix;
   }
 
   /**
@@ -80,29 +106,19 @@ class TreeStack {
   }
 
   /**
-   * Computes the line prefix for the current depth.
+   * Updates the last-sibling status of the current node.
    *
-   * @param through When `true`, returns guide lines for continued text; otherwise returns node branch characters.
-   * @returns The formatted prefix string.
+   * @param options Configuration options for the next node.
+   * @returns The {@link TreeStack} instance for chaining.
    */
-  prefix(through: boolean = false): string {
-    if (this.#stack.length === 0) {
-      return "";
+  next(options: { last?: boolean } = {}): this {
+    const { last = false } = options;
+
+    if (this.#stack.length > 0) {
+      this.#stack[this.#stack.length - 1] = last;
     }
 
-    let indent = "";
-
-    for (let i = 0; i < this.#stack.length - 1; i++) {
-      indent += this.#stack[i] ? this.#blank : this.#vertical;
-    }
-
-    const last = this.#stack[this.#stack.length - 1];
-
-    if (through) {
-      return `${indent}${last ? this.#blank : this.#vertical}`;
-    }
-
-    return `${indent}${last ? this.#corner : this.#tee}`;
+    return this;
   }
 }
 

@@ -8,18 +8,16 @@ Deno.test("basic functionality", async (test) => {
     assertEquals(stack.depth, 0);
     assertEquals(stack.node, "");
     assertEquals(stack.lead, "");
-    assertEquals(stack.prefix(), "");
-    assertEquals(stack.prefix(true), "");
   });
 
-  await test.step("prefix method direct call and default argument", () => {
+  await test.step("enter default argument", () => {
     const stack = new TreeStack();
 
-    stack.enter(false);
+    stack.enter();
 
-    assertEquals(stack.prefix(), stack.node);
-    assertEquals(stack.prefix(false), stack.node);
-    assertEquals(stack.prefix(true), stack.lead);
+    assertEquals(stack.depth, 1);
+    assertEquals(stack.node, "├── ");
+    assertEquals(stack.lead, "│   ");
   });
 
   await test.step("custom options", () => {
@@ -88,6 +86,29 @@ Deno.test("single-level operations", async (test) => {
     assertEquals(stack.depth, 1);
     assertEquals(stack.node, "└── ");
     assertEquals(stack.lead, "    ");
+  });
+
+  await test.step("next updates current node status", () => {
+    const stack = new TreeStack();
+
+    stack.enter();
+    assertEquals(stack.node, "├── ");
+    assertEquals(stack.lead, "│   ");
+
+    stack.next({ last: true });
+    assertEquals(stack.depth, 1);
+    assertEquals(stack.node, "└── ");
+    assertEquals(stack.lead, "    ");
+
+    stack.next({ last: false });
+    assertEquals(stack.depth, 1);
+    assertEquals(stack.node, "├── ");
+    assertEquals(stack.lead, "│   ");
+
+    stack.next();
+    assertEquals(stack.depth, 1);
+    assertEquals(stack.node, "├── ");
+    assertEquals(stack.lead, "│   ");
   });
 
   await test.step("leave restores parent state", () => {
@@ -173,10 +194,21 @@ Deno.test("edge cases & chaining", async (test) => {
     assertEquals(stack.lead, "");
   });
 
+  await test.step("next on empty stack does not error", () => {
+    const stack = new TreeStack();
+
+    stack.next({ last: true });
+
+    assertEquals(stack.depth, 0);
+    assertEquals(stack.node, "");
+    assertEquals(stack.lead, "");
+  });
+
   await test.step("methods return instance for chaining", () => {
     const stack = new TreeStack();
 
     assertStrictEquals(stack.enter(false), stack);
+    assertStrictEquals(stack.next({ last: true }), stack);
     assertStrictEquals(stack.leave(), stack);
   });
 
@@ -242,6 +274,42 @@ Deno.test("tree rendering workflow", async (test) => {
         "root",
         "├── src",
         "│   └── index.ts",
+        "└── README.md",
+      ].join("\n"),
+    );
+  });
+
+  await test.step("renders complete tree hierarchy using next", () => {
+    const stack = new TreeStack();
+    const output: string[] = ["."];
+
+    stack.enter();
+    output.push(`${stack.node}src/`);
+
+    stack.enter();
+    output.push(`${stack.node}index.js`);
+    output.push(`${stack.lead}[INFO] Entry Point`);
+
+    stack.next({ last: true });
+    output.push(`${stack.node}utils.js`);
+    stack.leave();
+
+    stack.next({ last: false });
+    output.push(`${stack.node}package.json`);
+
+    stack.next({ last: true });
+    output.push(`${stack.node}README.md`);
+    stack.leave();
+
+    assertEquals(
+      output.join("\n"),
+      [
+        ".",
+        "├── src/",
+        "│   ├── index.js",
+        "│   │   [INFO] Entry Point",
+        "│   └── utils.js",
+        "├── package.json",
         "└── README.md",
       ].join("\n"),
     );
