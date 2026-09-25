@@ -1,0 +1,66 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: "version increment"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+          - prerelease
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.6
+
+      - name: Bump Package Versions
+        env:
+          INCREMENT: ${{ inputs.increment }}
+        run: |
+          deno bump-version "$INCREMENT" --config deno.json
+          deno bump-version "$INCREMENT" --config package.json
+          VERSION="$(deno bump-version --config deno.json)"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Git Commit
+        run: |
+          BRANCH_NAME="release/v$VERSION"
+          git checkout -b "$BRANCH_NAME"
+          git add --all
+          git commit -m "chore: bump version to v$VERSION"
+          git push -u origin "$BRANCH_NAME"
+
+      - name: Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "release/v$VERSION" \
+            --body "This pull request bumps the version to v$VERSION." \
+            --head "release/v$VERSION" \
+            --base main
