@@ -1,6 +1,6 @@
 {
   "name": "@lcweden/tree-stack",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "tasks": {
     "build": "deno bundle --declaration --outdir dist mod.ts",
