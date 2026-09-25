@@ -1,0 +1,31 @@
+{
+  "name": "tree-stack",
+  "version": "0.0.1",
+  "description": "A lightweight, stateful, data-structure agnostic prefix manager for rendering tree-view hierarchies.",
+  "keywords": ["formatter", "hierarchy", "stack", "streaming", "tree"],
+  "license": "MIT",
+  "homepage": "https://github.com/lcweden/tree-stack",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lcweden/tree-stack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lcweden/tree-stack/issues"
+  },
+  "author": {
+    "name": "lcweden",
+    "url": "https://github.com/lcweden"
+  },
+  "type": "module",
+  "main": "./dist/mod.js",
+  "types": "./dist/mod.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/mod.d.ts",
+      "import": "./dist/mod.js"
+    }
+  },
+  "files": [
+    "dist"
+  ]
+}

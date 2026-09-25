@@ -1,0 +1,38 @@
+name: Publish Package
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          registry-url: https://registry.npmjs.org/
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.6
+
+      - name: Build Package
+        run: deno task build
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+
+      - name: Publish to JSR
+        run: deno publish
