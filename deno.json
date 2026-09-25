@@ -4,7 +4,10 @@
   "license": "MIT",
   "tasks": {
     "build": "deno bundle --declaration --outdir dist mod.ts",
-    "dev": "deno test --watch"
+    "dev": "deno test --watch",
+    "format": "deno fmt",
+    "lint": "deno lint && deno doc --lint **/*.ts",
+    "test": "deno test"
   },
   "exports": "./mod.ts",
   "imports": {
